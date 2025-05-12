@@ -21,14 +21,16 @@ read target_ip
 
 nmap -F $target_ip > nmap_r.txt
 
-if !grep -q "open" nmap_r.txt; then
+if [ !grep -q "open" nmap_r.txt; ] then
     nmap $target_ip > nmap_r.txt
-    if !grep -q "open" nmap_r.txt; then
+    if [ !grep -q "open" nmap_r.txt; ] then
         echo "no open ports found"
         
-    elseif grep -q "open" nmap_r.txt; then
+    elif [ grep -q "open" nmap_r.txt; ] 
+    then
         grep -oP '\d+/open' nmap_r.txt | cut -d '/' -f 1 | while read port; do
         nmap $target_ip -p $port -sV > nmap_r.txt
+    file 
     fi 
 fi
 
