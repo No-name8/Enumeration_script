@@ -28,8 +28,8 @@ if  ! grep -q "open" nmap_r.txt;  then
         
     elif  grep -q "open" nmap_r.txt;  
     then
-        grep -oP '\d+/open' nmap_r.txt | cut -d '/' -f 1 | while read -r port; do
-        nmap "$target_ip" -p "$port" -sV > nmap_r.txt
+        grep  'open' nmap_r.txt | cut -d '/' -f 1 | while read -r port; do
+        nmap "$target_ip" -p- "$port" -sV > nmap_r.txt
     done
     fi 
 fi
