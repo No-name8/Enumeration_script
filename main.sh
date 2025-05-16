@@ -17,30 +17,30 @@ else
 fi
 
 echo "please enter the target ip address"
-read target_ip
+read -r target_ip
 
-nmap -F $target_ip > nmap_r.txt
+nmap -F "$target_ip" > nmap_r.txt
 
-if [ !grep -q "open" nmap_r.txt; ] then
-    nmap $target_ip > nmap_r.txt
-    if [ !grep -q "open" nmap_r.txt; ] then
+if  ! grep -q "open" nmap_r.txt;  then
+    nmap "$target_ip" > nmap_r.txt
+    if ! grep -q "open" nmap_r.txt;  then
         echo "no open ports found"
         
-    elif [ grep -q "open" nmap_r.txt; ] 
+    elif  grep -q "open" nmap_r.txt;  
     then
-        grep -oP '\d+/open' nmap_r.txt | cut -d '/' -f 1 | while read port; do
-        nmap $target_ip -p $port -sV > nmap_r.txt
-    file 
+        grep -oP '\d+/open' nmap_r.txt | cut -d '/' -f 1 | while read -r port; do
+        nmap "$target_ip" -p "$port" -sV > nmap_r.txt
+    done
     fi 
 fi
 
 echo "if target is a web page, please enter the URL"
-read target_url
+read -r target_url
 
 if [ -z "$target_url" ]; then
     echo "No URL provided, skipping curl request."
 else
-    curl -s $target_url/robots.txt > curl_r.txt
+    curl -s "$target_url"/robots.txt > curl_r.txt
 fi
 
 # print number of open ports
@@ -54,7 +54,7 @@ cat curl_r.txt
 
 if grep -q "telnet" nmap_r.txt | grep -q "ftp" nmap_r.txt | grep -q "ssh" nmap_r.txt | grep -q "smtp" nmap_r.txt | grep -q "http" nmap_r.txt | grep -q "https" nmap_r.txt; then
     echo "vulnerable ports:"
-    grep -oP '\d+/open' nmap_r.txt | cut -d '/' -f 1 | while read port; do
+    grep -oP '\d+/open' nmap_r.txt | cut -d '/' -f 1 | while read -r port; do
         if [ "$port" == "23" ]; then
             echo "telnet"
         elif [ "$port" == "21" ]; then
