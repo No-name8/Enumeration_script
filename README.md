@@ -1,2 +1,1 @@
-./main.sh: line 33: syntax error near unexpected token `fi'
-./main.sh: line 33: `    fi '
+A simple script to enumerate port scans and curling the target websites robots.txt written in bash. 
