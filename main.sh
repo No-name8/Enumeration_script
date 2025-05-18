@@ -81,10 +81,10 @@ fi
 
 mkdir -p "$target_name"
 
-if [port_scan -eq 1]; then
+if [ $port_scan -eq 1 ]; then
     echo "please enter the target ip address"
     read -r target_ip
-    if [ port_scan -eq 1]; then
+    if [ $port_scan -eq 1 ]; then
         nmap -F "$target_ip" > nmap_"$target_name".txt
         if  ! grep -q "open" nmap_"$target_name".txt;  then
                 nmap "$target_ip" > nmap_"$target_name".txt
@@ -94,6 +94,7 @@ if [port_scan -eq 1]; then
                     echo "no open ports found"
                     exit 1 
                     fi
+                fi
         elif  grep -q "open" nmap_"$target_name".txt;  
         then
             grep  'open' nmap_"$target_name".txt | cut -d '/' -f 1 | while read -r port; do
@@ -103,7 +104,7 @@ if [port_scan -eq 1]; then
     fi
 fi
 
-if [ web_enum -eq 1]; then
+if [ $web_enum -eq 1 ]; then
     echo "if target is a web page, please enter the URL"    
     read -r target_url
 
@@ -116,11 +117,12 @@ if [ web_enum -eq 1]; then
         cat subfinder_"$target_name".txt assetfinder_"$target_name".txt | sort -u > all_subs_"$target_name".txt
         httpx -l all_subs_"$target_name".txt -o alive_subs_"$target_name".txt
 
-        if [ wc -l alive_subs_"$target_name".txt -lt 1]; then
+        if  wc -l alive_subs_"$target_name".txt -lt 1 ; then
             ffuf -u "$target_url"/FUZZ -w n0kovo_subdomains_medium.txt -o ffuf_"$target_name".txt
-            if [ wc -l ffuf_"$target_name".txt -lt 1]; then
-                subdomains = $(cat all_subs_"$target_name".txt | wc -l)
-                echo "no subdomains found, total subdomains: $subdomains"
+            if  wc -l ffuf_"$target_name".txt -lt 1 ; then
+                # shellcheck disable=SC2002
+                subdomains=$(cat all_subs_"$target_name".txt | wc -l)
+                echo "no live subdomains found, total subdomains: $subdomains"
             fi
         fi
         rm -rf subfinder_"$target_name".txt assetfinder_"$target_name".txt  
@@ -130,16 +132,21 @@ fi
 
 echo "scan results:"
 
-if [ port_scan -eq 1]; then
+if [ $port_scan -eq 1 ]; 
+then
     echo "open ports:"
     grep -oP '\d+/open' nmap_"$target_name".txt | cut -d '/' -f 1 > open_ports_"$target_name".txt
     echo "total open ports: $(grep -oP '\d+/open' nmap_"$target_name".txt | cut -d '/' -f 1 | wc -l)"
 
-    if grep -q "445" open_ports_"$target_name".txt; || grep -q "139" open_ports_"$target_name".txt; then
+    if grep -q "445" open_ports_"$target_name".txt; then 
+    
     enum4linux "$target_ip" > enumsmb_"$target_name".txt
+    elif grep -q "139" open_ports_"$target_name".txt; 
+    then
+        enum4linux "$target_ip" > enumsmb_"$target_name".txt
     fi
 
-    if [ grep -q "2049" open_ports_"$target_name".txt ]; then
-        showmount -e $target_ip > nfs_"$target_name".txt
+    if  grep -q "2049" open_ports_"$target_name".txt ; then
+        showmount -e "$target_ip" > nfs_"$target_name".txt
         fi
 fi
