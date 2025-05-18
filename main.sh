@@ -82,66 +82,64 @@ fi
 mkdir -p "$target_name"
 
 if [port_scan -eq 1]; then
-echo "please enter the target ip address"
-read -r target_ip
-fi
-
-if [ port_scan -eq 1]; then
-nmap -F "$target_ip" > nmap_"$target_name".txt
-
-if  ! grep -q "open" nmap_"$target_name".txt;  then
-    nmap "$target_ip" > nmap_"$target_name".txt
-    if ! grep -q "open" nmap_"$target_name".txt;  then
-        nmap "$target_ip" -p- > nmap_"$target_name".txt
-        if ! grep -q "open" nmap_"$target_name".txt; then
-            echo "no open ports found"
-            exit 1 
-        fi
-    elif  grep -q "open" nmap_"$target_name".txt;  
-    then
-        grep  'open' nmap_"$target_name".txt | cut -d '/' -f 1 | while read -r port; do
-        nmap "$target_ip" -p- "$port" -sV >> nmap_"$target_name".txt
-    done
-    fi 
-fi
+    echo "please enter the target ip address"
+    read -r target_ip
+    if [ port_scan -eq 1]; then
+        nmap -F "$target_ip" > nmap_"$target_name".txt
+        if  ! grep -q "open" nmap_"$target_name".txt;  then
+                nmap "$target_ip" > nmap_"$target_name".txt
+                if ! grep -q "open" nmap_"$target_name".txt;  then
+                    nmap "$target_ip" -p- > nmap_"$target_name".txt
+                    if ! grep -q "open" nmap_"$target_name".txt; then
+                    echo "no open ports found"
+                    exit 1 
+                    fi
+        elif  grep -q "open" nmap_"$target_name".txt;  
+        then
+            grep  'open' nmap_"$target_name".txt | cut -d '/' -f 1 | while read -r port; do
+            nmap "$target_ip" -p- "$port" -sV >> nmap_"$target_name".txt
+        done
+        fi 
+    fi
 fi
 
 if [ web_enum -eq 1]; then
-echo "if target is a web page, please enter the URL"
-read -r target_url
+    echo "if target is a web page, please enter the URL"    
+    read -r target_url
 
-if [ -z "$target_url" ]; then
-    echo "No URL provided, skipping curl request."
-else
-    curl -s "$target_url"/robots.txt > curl_"$target_name".txt
-    subfinder -d "$target_url" > subfinder_"$target_name".txt
-    assetfinder --subs-only "$target_url" > assetfinder_"$target_name".txt
-    cat subfinder_"$target_name".txt assetfinder_"$target_name".txt | sort -u > all_subs_"$target_name".txt
-    httpx -l all_subs_"$target_name".txt -o alive_subs_"$target_name".txt
+    if [ -z "$target_url" ]; then
+        echo "No URL provided, skipping curl request."
+        else
+        curl -s "$target_url"/robots.txt > curl_"$target_name".txt
+        subfinder -d "$target_url" > subfinder_"$target_name".txt
+        assetfinder --subs-only "$target_url" > assetfinder_"$target_name".txt
+        cat subfinder_"$target_name".txt assetfinder_"$target_name".txt | sort -u > all_subs_"$target_name".txt
+        httpx -l all_subs_"$target_name".txt -o alive_subs_"$target_name".txt
 
-    if [ wc -l alive_subs_"$target_name".txt -lt 1]; then
-        ffuf -u "$target_url"/FUZZ -w n0kovo_subdomains_medium.txt -o ffuf_"$target_name".txt
-        if [ wc -l ffuf_"$target_name".txt -lt 1]; then
-            subdomains = $(cat all_subs_"$target_name".txt | wc -l)
-            echo "no subdomains found, total subdomains: $subdomains"
+        if [ wc -l alive_subs_"$target_name".txt -lt 1]; then
+            ffuf -u "$target_url"/FUZZ -w n0kovo_subdomains_medium.txt -o ffuf_"$target_name".txt
+            if [ wc -l ffuf_"$target_name".txt -lt 1]; then
+                subdomains = $(cat all_subs_"$target_name".txt | wc -l)
+                echo "no subdomains found, total subdomains: $subdomains"
+            fi
         fi
+        rm -rf subfinder_"$target_name".txt assetfinder_"$target_name".txt  
     fi
-    rm -rf subfinder_"$target_name".txt assetfinder_"$target_name".txt  
 fi
 # print number of open ports
 
 echo "scan results:"
 
 if [ port_scan -eq 1]; then
-echo "open ports:"
-grep -oP '\d+/open' nmap_"$target_name".txt | cut -d '/' -f 1 > open_ports_"$target_name".txt
-echo "total open ports: $(grep -oP '\d+/open' nmap_"$target_name".txt | cut -d '/' -f 1 | wc -l)"
+    echo "open ports:"
+    grep -oP '\d+/open' nmap_"$target_name".txt | cut -d '/' -f 1 > open_ports_"$target_name".txt
+    echo "total open ports: $(grep -oP '\d+/open' nmap_"$target_name".txt | cut -d '/' -f 1 | wc -l)"
 
-if grep -q "445" open_ports_"$target_name".txt; || grep -q "139" open_ports_"$target_name".txt; then
+    if grep -q "445" open_ports_"$target_name".txt; || grep -q "139" open_ports_"$target_name".txt; then
     enum4linux "$target_ip" > enumsmb_"$target_name".txt
-fi
+    fi
 
-if [ grep -q "2049" open_ports_"$target_name".txt ]; then
-    showmount -e $target_ip > nfs_"$target_name".txt
-fi
+    if [ grep -q "2049" open_ports_"$target_name".txt ]; then
+        showmount -e $target_ip > nfs_"$target_name".txt
+        fi
 fi
