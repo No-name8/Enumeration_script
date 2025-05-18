@@ -1,1 +1,1 @@
-A simple script to enumerate port scans and curling the target websites robots.txt written in bash. 
+A simple script to automate enumerating websites and ports as well as some basic further enumeration of potential ports of interest.
