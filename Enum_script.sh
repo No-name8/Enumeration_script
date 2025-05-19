@@ -115,16 +115,17 @@ if [ $web_enum -eq 1 ]; then
         subfinder -d "$target_url" > subfinder_"$target_name".txt
         assetfinder --subs-only "$target_url" > assetfinder_"$target_name".txt
         cat subfinder_"$target_name".txt assetfinder_"$target_name".txt | sort -u > all_subs_"$target_name".txt
-        httpx -l all_subs_"$target_name".txt -o alive_subs_"$target_name".txt
-
-        if  wc -l alive_subs_"$target_name".txt -lt 1 ; then
+        if  wc -l all_subs_"$target_name".txt -lt 1 ; then
             ffuf -u "$target_url"/FUZZ -w n0kovo_subdomains_medium.txt -o ffuf_"$target_name".txt
             if  wc -l ffuf_"$target_name".txt -lt 1 ; then
                 # shellcheck disable=SC2002
                 subdomains=$(cat all_subs_"$target_name".txt | wc -l)
                 echo "no live subdomains found, total subdomains: $subdomains"
+            else
+            cat all_subs_"$target_name".txt ffuf_"$target_name" | sort -u > all_subs_"$target_name".txt 
             fi
         fi
+        httpx -l all_subs_"$target_name".txt -o alive_subs_"$target_name".txt
         rm -rf subfinder_"$target_name".txt assetfinder_"$target_name".txt  
     fi
 fi
