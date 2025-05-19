@@ -105,7 +105,8 @@ if [ $port_scan -eq 1 ]; then
 fi
 
 if [ $web_enum -eq 1 ]; then
-    echo "if target is a web page, please enter the URL"    
+    echo "if target is a web page, please enter the URL " 
+    echo "please enter the target URL in the format http://example.com"  
     read -r target_url
 
     if [ -z "$target_url" ]; then
@@ -116,7 +117,7 @@ if [ $web_enum -eq 1 ]; then
         assetfinder --subs-only "$target_url" > assetfinder_"$target_name".txt
         cat subfinder_"$target_name".txt assetfinder_"$target_name".txt | sort -u > all_subs_"$target_name".txt
         if  wc -l all_subs_"$target_name".txt -lt 1 ; then
-            ffuf -u "$target_url"/FUZZ -w n0kovo_subdomains_medium.txt -o ffuf_"$target_name".txt
+            ffuf -u "$target_url"/FUZZ -w n0kovo_subdomains_medium.txt -o ffuf_"$target_name".txt -mc 200,204,301,302,307 
             if  wc -l ffuf_"$target_name".txt -lt 1 ; then
                 # shellcheck disable=SC2002
                 subdomains=$(cat all_subs_"$target_name".txt | wc -l)
