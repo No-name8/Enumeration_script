@@ -45,6 +45,16 @@ if find n0kovo_subdomains_medium.txt > /dev/null; then
 else
     wget https://raw.githubusercontent.com/n0kovo/n0kovo_subdomains/refs/heads/main/n0kovo_subdomains_medium.txt
 fi
+if which gobuster > /dev/null; then
+    echo "gobuster is installed"
+else
+    sudo apt install -y gobuster
+fi
+if which seclists > /dev/null; then
+    echo "seclists is installed"
+else
+    sudo apt install -y seclists
+fi
 echo "How would you like to enumerate the target?"
 echo "1. port scan"
 echo "2. webpage enumeration"
@@ -85,7 +95,7 @@ if [ $port_scan -eq 1 ]; then
     echo "please enter the target ip address"
     read -r target_ip
     if [ $port_scan -eq 1 ]; then
-        nmap -F "$target_ip" > nmap_"$target_name".txt
+        sudo nmap -F -sS -oG "$target_ip" > nmap_"$target_name".txt
         if  ! grep -q "open" nmap_"$target_name".txt;  then
                 nmap "$target_ip" > nmap_"$target_name".txt
                 if ! grep -q "open" nmap_"$target_name".txt;  then
